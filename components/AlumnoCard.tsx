@@ -2,8 +2,16 @@ import Link from 'next/link'
 import Badge from '@/components/Badge'
 import { getColorDiagnostico, getIniciales, type Alumno } from '@/lib/mock'
 
+const colorClasses = {
+  tea: { bg: 'bg-indigo-500', border: 'border-l-indigo-500' },
+  tdah: { bg: 'bg-emerald-500', border: 'border-l-emerald-500' },
+  di: { bg: 'bg-orange-500', border: 'border-l-orange-500' },
+} as const
+
 export default function AlumnoCard({ alumno }: { alumno: Alumno }) {
-  const colors = getColorDiagnostico(alumno.diagnostico)
+  const colorInfo = getColorDiagnostico(alumno.diagnostico)
+  const colors = colorClasses[colorInfo.key as keyof typeof colorClasses]
+
   return (
     <Link href={`/alumnos/${alumno.slug}`}>
       <div className={`bg-slate-800 rounded-2xl p-4 border-l-4 ${colors.border} active:scale-95 transition-transform cursor-pointer`}>

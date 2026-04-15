@@ -184,10 +184,11 @@ export function getAlumno(slug: string): Alumno | undefined {
 }
 
 export function getColorDiagnostico(diagnostico: Diagnostico) {
+  // Retorna índice en lugar de strings para evitar purga de Tailwind
   switch (diagnostico) {
-    case 'TEA': return { bg: 'bg-indigo-500', light: 'bg-indigo-100 text-indigo-700', border: 'border-l-indigo-500' }
-    case 'TDAH': return { bg: 'bg-emerald-500', light: 'bg-emerald-100 text-emerald-700', border: 'border-l-emerald-500' }
-    case 'DI': return { bg: 'bg-orange-500', light: 'bg-orange-100 text-orange-700', border: 'border-l-orange-500' }
+    case 'TEA': return { key: 'tea', bg: 'bg-indigo-500', light: 'bg-indigo-100 text-indigo-700', border: 'border-l-indigo-500' }
+    case 'TDAH': return { key: 'tdah', bg: 'bg-emerald-500', light: 'bg-emerald-100 text-emerald-700', border: 'border-l-emerald-500' }
+    case 'DI': return { key: 'di', bg: 'bg-orange-500', light: 'bg-orange-100 text-orange-700', border: 'border-l-orange-500' }
   }
 }
 
