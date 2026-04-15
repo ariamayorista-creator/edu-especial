@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getAlumno } from '@/lib/mock'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
 const CAMPOS = [
@@ -48,7 +47,7 @@ export default function NuevaPPIPage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
   const alumno = getAlumno(slug)
-  if (!alumno) notFound()
+  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
   const [form, setForm] = useState<Record<string, string>>(
     Object.fromEntries(CAMPOS.map(c => [c.key, '']))

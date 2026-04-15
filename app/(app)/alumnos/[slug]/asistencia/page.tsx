@@ -2,8 +2,6 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getAlumno, type EstadoAsistencia } from '@/lib/mock'
-import { notFound } from 'next/navigation'
-
 const CICLO: (EstadoAsistencia | null)[] = ['presente', 'ausente', 'tardanza', null]
 
 function diasEnMes(año: number, mes: number) { return new Date(año, mes + 1, 0).getDate() }
@@ -18,7 +16,7 @@ export default function AsistenciaPage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
   const alumno = getAlumno(slug)
-  if (!alumno) notFound()
+  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
   const hoy = new Date()
   const [mes, setMes] = useState(hoy.getMonth())
@@ -26,12 +24,12 @@ export default function AsistenciaPage() {
   const [asistencia, setAsistencia] = useState<Record<string, EstadoAsistencia>>(alumno.asistencia)
 
   function cambiarMes(delta: number) {
-    setMes(m => {
-      const nuevoMes = m + delta
-      if (nuevoMes < 0) { setAño(a => a - 1); return 11 }
-      if (nuevoMes > 11) { setAño(a => a + 1); return 0 }
-      return nuevoMes
-    })
+    let nuevoMes = mes + delta
+    let nuevoAño = año
+    if (nuevoMes < 0) { nuevoMes = 11; nuevoAño = año - 1 }
+    else if (nuevoMes > 11) { nuevoMes = 0; nuevoAño = año + 1 }
+    setMes(nuevoMes)
+    setAño(nuevoAño)
   }
 
   function marcar(dia: number) {

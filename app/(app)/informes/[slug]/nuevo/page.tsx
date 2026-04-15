@@ -2,8 +2,6 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getAlumno } from '@/lib/mock'
-import { notFound } from 'next/navigation'
-
 type Resultado = 'si' | 'no' | 'parcial' | ''
 
 interface Intervencion {
@@ -37,7 +35,7 @@ export default function NuevoInformePage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
   const alumno = getAlumno(slug)
-  if (!alumno) notFound()
+  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
   const [paso, setPaso] = useState(1)
   const [trimestre, setTrimestre] = useState<number>(1)

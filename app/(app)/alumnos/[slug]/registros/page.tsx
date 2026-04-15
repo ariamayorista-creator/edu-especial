@@ -2,8 +2,6 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getAlumno, formatFecha, type LogDiario } from '@/lib/mock'
-import { notFound } from 'next/navigation'
-
 const INDICADORES = [
   { key: 'participo' as const, label: 'Participó', emoji: '🙋' },
   { key: 'se_frustro' as const, label: 'Se frustró', emoji: '😤' },
@@ -17,7 +15,7 @@ export default function RegistrosPage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
   const alumno = getAlumno(slug)
-  if (!alumno) notFound()
+  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
   const [logs, setLogs] = useState<LogDiario[]>(alumno.logs)
   const [mostrarForm, setMostrarForm] = useState(false)

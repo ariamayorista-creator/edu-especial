@@ -4,6 +4,7 @@
 @source inline("{bg,text,border-l}-{red,yellow}-{100,400,500,700}");
 @source inline("bg-{indigo,emerald,slate}-{600,700,800,900}");
 @source inline("ring-indigo-{400,500}");
+@source inline("bg-indigo-900/40 border-indigo-800/50");
 
 body {
   background-color: #0f172a;
