@@ -183,12 +183,28 @@ export function getAlumno(slug: string): Alumno | undefined {
   return ALUMNOS.find(a => a.slug === slug)
 }
 
-export function getColorDiagnostico(diagnostico: Diagnostico) {
-  // Retorna índice en lugar de strings para evitar purga de Tailwind
+export function getColorDiagnostico(diagnostico: Diagnostico | string | null) {
   switch (diagnostico) {
-    case 'TEA': return { key: 'tea', bg: 'bg-indigo-500', light: 'bg-indigo-100 text-indigo-700', border: 'border-l-indigo-500' }
-    case 'TDAH': return { key: 'tdah', bg: 'bg-emerald-500', light: 'bg-emerald-100 text-emerald-700', border: 'border-l-emerald-500' }
-    case 'DI': return { key: 'di', bg: 'bg-orange-500', light: 'bg-orange-100 text-orange-700', border: 'border-l-orange-500' }
+    case 'TEA': return {
+      bg: 'bg-indigo-500',
+      light: 'bg-indigo-100 text-indigo-700',
+      border: 'border-l-indigo-500',
+    }
+    case 'TDAH': return {
+      bg: 'bg-emerald-500',
+      light: 'bg-emerald-100 text-emerald-700',
+      border: 'border-l-emerald-500',
+    }
+    case 'DI': return {
+      bg: 'bg-orange-500',
+      light: 'bg-orange-100 text-orange-700',
+      border: 'border-l-orange-500',
+    }
+    default: return {
+      bg: 'bg-slate-500',
+      light: 'bg-slate-100 text-slate-700',
+      border: 'border-l-slate-500',
+    }
   }
 }
 
