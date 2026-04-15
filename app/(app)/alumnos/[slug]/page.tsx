@@ -1,8 +1,12 @@
-import { getAlumno, getColorDiagnostico, getIniciales } from '@/lib/mock'
+import { getAlumno, getColorDiagnostico, getIniciales, ALUMNOS } from '@/lib/mock'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Badge from '@/components/Badge'
 import WhatsAppButton from '@/components/WhatsAppButton'
+
+export function generateStaticParams() {
+  return ALUMNOS.map(a => ({ slug: a.slug }))
+}
 
 export default function AlumnoPage({ params }: { params: { slug: string } }) {
   const alumno = getAlumno(params.slug)

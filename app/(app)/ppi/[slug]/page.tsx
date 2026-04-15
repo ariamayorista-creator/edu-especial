@@ -1,6 +1,10 @@
-import { getAlumno } from '@/lib/mock'
+import { getAlumno, ALUMNOS } from '@/lib/mock'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+
+export function generateStaticParams() {
+  return ALUMNOS.map(a => ({ slug: a.slug }))
+}
 
 export default function PPIAlumnoPage({ params }: { params: { slug: string } }) {
   const alumno = getAlumno(params.slug)
