@@ -6,8 +6,9 @@ export function generateStaticParams() {
   return ALUMNOS.map(a => ({ slug: a.slug }))
 }
 
-export default function PPIAlumnoPage({ params }: { params: { slug: string } }) {
-  const alumno = getAlumno(params.slug)
+export default async function PPIAlumnoPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const alumno = getAlumno(slug)
   if (!alumno) notFound()
 
   const añoActual = new Date().getFullYear()
