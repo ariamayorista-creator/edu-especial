@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useStudents } from '@/lib/context/StudentContext'
-import Link from 'next/link'
+
 type Resultado = 'si' | 'no' | 'parcial' | ''
 
 const TRIMESTRES = [
@@ -74,25 +74,53 @@ export default function NuevoInformePage() {
   async function AI_Generate() {
     if (!alumno) return;
     setIsCompiling(true)
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ alumno: alumno!, logs: alumno!.logs, tipo: 'informe' })
-      })
-      if (!res.ok) throw new Error('Error en IA')
-      const data = await res.json()
-      setAvancesLengua(data.avances_lengua || '')
-      setAvancesMatematica(data.avances_matematica || '')
-      setAvancesGenerales(data.avances_generales || '')
-      setToast('¡Autocompletado con IA exitoso! ✦')
-      setTimeout(() => setToast(''), 2500)
-    } catch (e) {
-      console.error(e)
-      setToast('Verificar GOOGLE_API_KEY o conexión')
-    } finally {
-      setIsCompiling(false)
+    
+    // 1. Crear un Job inmediato en localStorage (modo bandeja)
+    const jobId = `job_${Date.now()}`
+    const periodo = TRIMESTRES.find(t => t.num === trimestre)?.label || `Trimestre ${trimestre}`
+    const newJob = {
+      id: jobId,
+      alumnoNombre: `${alumno.nombre} ${alumno.apellido}`,
+      alumnoSlug: alumno.slug,
+      trimestre: `${periodo} ${new Date().getFullYear()}`,
+      status: 'generando',
+      creadoEn: new Date().toISOString(),
+      intervenciones,
     }
+    
+    try {
+      const existing = JSON.parse(localStorage.getItem('bandeja_jobs') || '[]')
+      localStorage.setItem('bandeja_jobs', JSON.stringify([newJob, ...existing]))
+    } catch(e) { console.error(e) }
+
+    setToast('✦ IA procesando... Revisá tu Bandeja en unos minutos')
+    setTimeout(() => setToast(''), 4000)
+
+    // 2. Disparar IA en segundo plano (sin bloquear la UI)
+    fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alumno, logs: alumno.logs, tipo: 'informe' })
+    }).then(async res => {
+      const existing = JSON.parse(localStorage.getItem('bandeja_jobs') || '[]')
+      if (res.ok) {
+        const data = await res.json()
+        const updated = existing.map((j: any) => j.id === jobId 
+          ? { ...j, status: 'listo', contenido: { avancesLengua: data.avances_lengua || '', avancesMatematica: data.avances_matematica || '', avancesGenerales: data.avances_generales || '', intervenciones } }
+          : j
+        )
+        localStorage.setItem('bandeja_jobs', JSON.stringify(updated))
+      } else {
+        const updated = existing.map((j: any) => j.id === jobId ? { ...j, status: 'error' } : j)
+        localStorage.setItem('bandeja_jobs', JSON.stringify(updated))
+      }
+    }).catch(() => {
+      const existing = JSON.parse(localStorage.getItem('bandeja_jobs') || '[]')
+      const updated = existing.map((j: any) => j.id === jobId ? { ...j, status: 'error' } : j)
+      localStorage.setItem('bandeja_jobs', JSON.stringify(updated))
+    }).finally(() => {
+      setIsCompiling(false)
+    })
   }
 
   function guardar() {
