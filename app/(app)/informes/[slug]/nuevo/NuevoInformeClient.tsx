@@ -1,4 +1,5 @@
 'use client'
+// VERSION 3.2.1 - Fix type safety for build
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useStudents } from '@/lib/context/StudentContext'
@@ -136,8 +137,8 @@ export default function NuevoInformePage() {
       const texto = `INFORME PEDAGÓGICO INDIVIDUAL
 Dirección General de Cultura y Educación (Comunicación 71/22)
 --------------------------------------------------
-ESTUDIANTE: ${alumno.nombre} ${alumno.apellido}
-DIAGNÓSTICO: ${alumno.diagnostico}
+ESTUDIANTE: ${alumno?.nombre} ${alumno?.apellido}
+DIAGNÓSTICO: ${alumno?.diagnostico}
 PERÍODO: ${periodo} ${new Date().getFullYear()}
 --------------------------------------------------
 
@@ -164,7 +165,7 @@ Generado automáticamente por Edu-Especial
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Informe_${alumno.apellido}_${periodo}.txt`;
+      link.download = `Informe_${alumno?.apellido || 'estudiante'}_${periodo}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
