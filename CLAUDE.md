@@ -20,6 +20,15 @@
   - `supabase.ts`: Supabase client configuration
   - `mock.ts`: Data models and mock data fallback
 
+## Lessons Learned & Technical Debt
+- **Vercel Deployments**: Vercel silent build failures were caused by missing module dependencies (`html2pdf.js`, `@google/generative-ai`, `next-themes`) which were installed correctly locally but omitted from `package.json`. These must always be properly tracked.
+- **State Management**: The dual LocalStorage + Supabase approach requires strict error boundaries if DB queries fail.
+- **Supabase Authentication**: For automated initializations, the Management API with a personal access token bypassing RLS is an effective method to handle migrations and seed data.
+
+## Upcoming Development Plan
+1. **AI Option 1 (Generación de Informes Pedagógicos)**: Implement a one-click AI feature inside `/informes/[slug]/nuevo` to scrape Student Context and generate a professional pedagogical report using Gemini.
+2. **AI Option 2 (Asistente de Adaptación Curricular)**: Create an interactive chat system mapping to the student's profile to suggest pedagogical adaptations in real time.
+
 ## Current Status
 - Fully functional UI with mock data.
 - Local persistence via Browser LocalStorage.
@@ -29,8 +38,6 @@
 ## Development Scripts
 - `npm run dev`: Development server
 - `npm run build`: Build for production
-- `npm run lint`: ESLint check
-
 ## Technical Debt & Observations
 - **Persistence**: Data only lives in the browser. Moving to Supabase/Postgres is planned.
 - **Architectural Shift**: Changing from `output: 'export'` to a dynamic server will be needed for DB integration.

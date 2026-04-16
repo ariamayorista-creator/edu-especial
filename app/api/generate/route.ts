@@ -12,11 +12,25 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      systemInstruction: "You are an AI pedagogical assistant generating educational reports. WARNING: Strict data privacy rules apply. Do not use real student names if accidentally provided. Write in a formal, encouraging tone suitable for parents and school administration."
+    });
+
+    // SECURITY: Anonymize student data to protect sensitive information (PII) before sending it to LLM
+    const safeStudentName = "El estudiante (anonimizado por seguridad)";
+    
+    let safeLogs = logs;
+    if (logs) {
+       safeLogs = logs.map((l: any) => ({
+         ...l,
+         observacion: l.observacion ? l.observacion.replace(new RegExp(alumno.nombre, 'gi'), 'el estudiante') : ''
+       }))
+    }
 
     const context = `
       Perfil del Alumno:
-      Nombre: ${alumno.nombre} ${alumno.apellido}
+      Nombre: ${safeStudentName}
       Diagnóstico: ${alumno.diagnostico}
       Perfil Pedagógico:
       - Como aprende: ${alumno.perfil_pedagogico?.como_aprende || 'No especificado'}

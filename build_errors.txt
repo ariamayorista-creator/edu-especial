@@ -1,0 +1,114 @@
+
+> edu-especial@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\PC\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\PC\Desktop\Proyectos Tech\edu-especial\package-lock.json
+
+▲ Next.js 16.2.3 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+./Desktop/Proyectos Tech/edu-especial/app/(app)/informes/[slug]/nuevo/NuevoInformeClient.tsx:107:31
+Module not found: Can't resolve 'html2pdf.js'
+  [90m105 |[0m     [36mtry[0m {
+  [90m106 |[0m       [90m// @ts-ignore[0m
+[31m[1m>[0m [90m107 |[0m       [36mconst[0m html2pdf = ([36mawait[0m [36mimport[0m([32m'html2pdf.js'[0m)).[36mdefault[0m;
+  [90m    |[0m                               [31m[1m^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m108 |[0m       [36mconst[0m element = document.getElementById([32m'informe-preview'[0m);
+  [90m109 |[0m       [36mconst[0m opt = {
+  [90m110 |[0m         margin:       [35m10[0m,
+
+
+
+Import trace:
+  Server Component:
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/informes/[slug]/nuevo/NuevoInformeClient.tsx
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/informes/[slug]/nuevo/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 4 errors:
+./Desktop/Proyectos Tech/edu-especial/app/api/generate/route.ts:1:1
+Module not found: Can't resolve '@google/generative-ai'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { [33mGoogleGenerativeAI[0m } [36mfrom[0m [32m'@google/generative-ai'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36masync[0m [36mfunction[0m [33mPOST[0m(req: [33mRequest[0m) {
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./Desktop/Proyectos Tech/edu-especial/app/api/upload/route.ts:2:1
+Module not found: Can't resolve '@google/generative-ai/server'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { [33mGoogleAIFileManager[0m } [36mfrom[0m [32m'@google/generative-ai/server'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m [36mimport[0m os [36mfrom[0m [32m'os'[0m;
+  [90m4 |[0m [36mimport[0m path [36mfrom[0m [32m'path'[0m;
+  [90m5 |[0m [36mimport[0m fs [36mfrom[0m [32m'fs'[0m;
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./Desktop/Proyectos Tech/edu-especial/app/(app)/layout.tsx:2:1
+Module not found: Can't resolve 'next-themes'
+  [90m1 |[0m [36mimport[0m [33mTutorialOverlay[0m [36mfrom[0m [32m'@/components/TutorialOverlay'[0m
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { [33mThemeProvider[0m } [36mfrom[0m [32m'next-themes'[0m
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAppLayout[0m({ children }: { children: [33mReact[0m.[33mReactNode[0m }) {
+  [90m5 |[0m   [36mreturn[0m (
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./Desktop/Proyectos Tech/edu-especial/components/home/HomeHeader.tsx:4:1
+Module not found: Can't resolve 'next-themes'
+  [90m2 |[0m [36mimport[0m { useState, useEffect } [36mfrom[0m [32m'react'[0m
+  [90m3 |[0m [36mimport[0m [33mLink[0m [36mfrom[0m [32m'next/link'[0m
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { useTheme } [36mfrom[0m [32m'next-themes'[0m
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m
+  [90m6 |[0m [36minterface[0m [33mHomeHeaderProps[0m {
+  [90m7 |[0m   studentCount: number
+
+
+
+Import traces:
+  Client Component Browser:
+    ./Desktop/Proyectos Tech/edu-especial/components/home/HomeHeader.tsx [Client Component Browser]
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/page.tsx [Client Component Browser]
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Desktop/Proyectos Tech/edu-especial/components/home/HomeHeader.tsx [Client Component SSR]
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/page.tsx [Client Component SSR]
+    ./Desktop/Proyectos Tech/edu-especial/app/(app)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./Desktop/Proyectos Tech/edu-especial/app/api/generate/route.ts:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./Desktop/Proyectos Tech/edu-especial/app/api/upload/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./Desktop/Proyectos Tech/edu-especial/app/(app)/layout.tsx:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./Desktop/Proyectos Tech/edu-especial/components/home/HomeHeader.tsx:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

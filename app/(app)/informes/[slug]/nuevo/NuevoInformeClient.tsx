@@ -150,10 +150,10 @@ export default function NuevoInformePage() {
           <div className="space-y-4">
             {TRIMESTRES.map(t => (
               <button key={t.num} onClick={() => setTrimestre(t.num)}
-                className={`w-full rounded-3xl p-5 text-left transition-all border shadow-sm dark:shadow-none ${
+                className={`w-full rounded-[1.75rem] p-6 text-left transition-all backdrop-blur-xl border shadow-xl hover:translate-y-[-2px] ${
                   trimestre === t.num 
-                    ? 'bg-indigo-600 dark:bg-indigo-600 text-white border-indigo-500' 
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                    ? 'bg-indigo-600/90 dark:bg-indigo-600/80 text-white border-indigo-400/50 shadow-[#6366f130]' 
+                    : 'glass text-slate-900 dark:text-white border-slate-200/50 dark:border-white/10 hover:border-indigo-300'
                 }`}>
                 <p className={`font-black text-lg ${trimestre === t.num ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{t.label} {new Date().getFullYear()}</p>
                 <p className={`text-sm mt-0.5 ${trimestre === t.num ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>{t.periodo}</p>
@@ -197,11 +197,17 @@ export default function NuevoInformePage() {
       {/* PASO 3 — Avances */}
       {paso === 3 && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center justify-between mb-4">
-             <p className="text-slate-900 dark:text-white text-xl font-black mb-1">¿Qué avances observaste?</p>
-             <button onClick={AI_Generate} disabled={isCompiling} className="bg-amber-500 text-black px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active-scale shadow-lg shadow-amber-500/20 disabled:opacity-50">
-                {isCompiling ? '⌛ Pensando...' : '✦ Rellenar con IA'}
+          <div className="flex items-center justify-between mb-4 bg-amber-500/10 border border-amber-500/20 p-4 rounded-3xl backdrop-blur-md">
+             <div>
+               <p className="text-amber-700 dark:text-amber-400 text-[11px] font-black uppercase tracking-widest mb-1">Módulo Predictivo de IA</p>
+               <p className="text-slate-900 dark:text-white text-lg font-black leading-tight">Autocompletar con Gemini</p>
+             </div>
+             <button onClick={AI_Generate} disabled={isCompiling} className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.6)] hover:-translate-y-1 disabled:opacity-50 disabled:grayscale">
+                {isCompiling ? '⌛ PROCESANDO...' : '✦ GENERAR ESTUDIO'}
              </button>
+          </div>
+          <div className="flex items-center justify-between mb-4 mt-8">
+             <p className="text-slate-900 dark:text-white text-xl font-black mb-1">Redacción de Avances</p>
           </div>
           <div className="flex items-center gap-2 bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl px-4 py-3 mb-6 w-fit">
             <span className="text-slate-400 text-xs">Asistencia:</span>
@@ -220,7 +226,7 @@ export default function NuevoInformePage() {
                 <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">{campo.label}</label>
                 <textarea value={campo.val} onChange={e => campo.set(e.target.value)}
                   placeholder={campo.ph} rows={4}
-                  className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm dark:shadow-none" />
+                  className="w-full glass text-slate-900 dark:text-white rounded-[1.75rem] p-6 text-sm leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-shadow" />
               </div>
             ))}
           </div>
