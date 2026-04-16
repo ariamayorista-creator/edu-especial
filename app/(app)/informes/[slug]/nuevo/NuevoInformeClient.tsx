@@ -100,25 +100,55 @@ export default function NuevoInformePage() {
     setTimeout(() => router.push(`/alumnos/${slug}`), 1800)
   }
 
-  async function descargarPDF() {
+  function descargarTXT() {
     if (!alumno) return;
+    
     try {
-      // @ts-ignore
-      const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById('informe-preview');
-      const opt = {
-        margin:       10,
-        filename:     `Informe_${alumno!.apellido}_${TRIMESTRES.find(t=>t.num===trimestre)?.label || ''}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
+      const periodo = TRIMESTRES.find(t=>t.num===trimestre)?.label || '';
+      const texto = `INFORME PEDAGÓGICO INDIVIDUAL
+Dirección General de Cultura y Educación (Comunicación 71/22)
+--------------------------------------------------
+ESTUDIANTE: ${alumno.nombre} ${alumno.apellido}
+DIAGNÓSTICO: ${alumno.diagnostico}
+PERÍODO: ${periodo} ${new Date().getFullYear()}
+--------------------------------------------------
+
+VALORACIÓN DE INTERVENCIONES Y APOYOS
+${intervenciones.filter(i => i.resultado !== '').map(item => 
+  `- ${item.nombre}: ${item.resultado === 'si' ? 'Efectivo' : item.resultado === 'parcial' ? 'Parcial' : 'No efectivo'}
+   ${item.comentario ? `Comentario: ${item.comentario}` : ''}`
+).join('\n')}
+
+--------------------------------------------------
+AVANCES EN PRÁCTICAS DEL LENGUAJE
+${avancesLengua || 'Sin observaciones adicionales.'}
+
+AVANCES EN MATEMÁTICA
+${avancesMatematica || 'Sin observaciones adicionales.'}
+
+PROGRESO GENERAL E INTERACCIÓN
+${avancesGenerales || 'Sin observaciones adicionales.'}
+--------------------------------------------------
+Generado automáticamente por Edu-Especial
+`;
+
+      const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Informe_${alumno.apellido}_${periodo}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setToast("Archivo TXT descargado correctamente");
     } catch (e) {
-      console.error("No se pudo cargar html2pdf", e)
-      setToast("Error al exportar. Comprueba instalación html2pdf")
+      console.error("Error al generar TXT", e);
+      setToast("Error al exportar el archivo");
     }
   }
+
 
   const intervCompletadas = intervenciones.filter(i => i.resultado !== '').length
 
@@ -299,8 +329,8 @@ export default function NuevoInformePage() {
             </div>
           </div>
           
-          <button onClick={descargarPDF} className="w-full mt-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active-scale shadow-xl">
-             Descargar en PDF para entregar ⬇
+          <button onClick={descargarTXT} className="w-full mt-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active-scale shadow-xl">
+             Descargar en TXT para entregar ⬇
           </button>
         </div>
       )}
