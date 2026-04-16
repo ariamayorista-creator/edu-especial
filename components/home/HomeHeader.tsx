@@ -16,7 +16,10 @@ export default function HomeHeader({ studentCount }: HomeHeaderProps) {
   return (
     <header className="mb-8 pt-8">
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Mis Alumnos</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Mis Alumnos</h1>
+          <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-[10px] font-black text-indigo-500 tracking-wider">V3.2.0</span>
+        </div>
         <div className="flex gap-2">
           {mounted && (
             <button
