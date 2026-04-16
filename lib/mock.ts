@@ -1,9 +1,13 @@
-// lib/mock.ts
-export type Diagnostico = 'TEA' | 'TDAH' | 'DI'
+export type Diagnostico = 
+  | 'TDA' | 'TDAH' | 'TEA' | 'TES' 
+  | 'Discapacidad visual' | 'Discapacidad auditiva' 
+  | 'Discapacidad intelectual' | 'Discapacidad motora'
+
 export type EstadoAsistencia = 'presente' | 'ausente' | 'tardanza'
 
 export interface Colegio {
   nombre: string
+  numero?: string
   direccion: string
   telefono: string
   director_nombre: string
@@ -15,12 +19,18 @@ export interface Colegio {
   eoe_tel?: string
 }
 
+export interface AcuerdoClase {
+  fecha: string
+  acuerdo: string
+}
+
 export interface Horario {
   dia: string
   hora_inicio: string
   hora_fin: string
   materia: string
   docente: string
+  acuerdos_diarios?: AcuerdoClase[]
 }
 
 export interface LogDiario {
@@ -33,6 +43,24 @@ export interface LogDiario {
   trabajo_en_grupo: boolean
 }
 
+export interface Documento {
+  id: string
+  nombre: string
+  fecha: string
+  tipo: 'pdf' | 'doc'
+  descripcion?: string
+  geminiFileUri?: string
+  geminiMimeType?: string
+}
+
+export interface PerfilPedagogico {
+  como_aprende: string
+  etapa_lectura: 'Presilábica' | 'Silábica' | 'Alfabética' | 'Ortográfica' | 'No evaluada'
+  etapa_matematica: 'Sensoriomotora' | 'Preconceptual' | 'Conceptual' | 'Logicomatemática' | 'No evaluada'
+  andamiajes: string
+  habilidades_intereses: string
+}
+
 export interface Alumno {
   slug: string
   nombre: string
@@ -43,6 +71,8 @@ export interface Alumno {
   horarios: Horario[]
   logs: LogDiario[]
   asistencia: Record<string, EstadoAsistencia> // key: 'YYYY-MM-DD'
+  documentos?: Documento[]
+  perfil_pedagogico?: PerfilPedagogico
 }
 
 function diasAtras(n: number): string {
@@ -69,51 +99,46 @@ export const ALUMNOS: Alumno[] = [
     colegio: {
       nombre: 'EP Nro 14 "San Martín"',
       direccion: 'Av. Corrientes 1234, Lomas de Zamora',
-      telefono: '4 292-1234',
+      telefono: '011 42921234',
       director_nombre: 'María López',
       director_tel: '5491123456789',
-      vice_nombre: 'Ana Pérez',
-      vice_tel: '5491198765432',
-      eoe_nombre: 'Gabriela Torres',
-      eoe_rol: 'Psicóloga',
-      eoe_tel: '5491145678901',
     },
     horarios: [
-      { dia: 'Lunes', hora_inicio: '08:00', hora_fin: '09:30', materia: 'Prácticas del Lenguaje', docente: 'Prof. Fernández' },
-      { dia: 'Martes', hora_inicio: '08:00', hora_fin: '09:30', materia: 'Matemática', docente: 'Prof. Castro' },
-      { dia: 'Miércoles', hora_inicio: '10:00', hora_fin: '11:00', materia: 'Ciencias Naturales', docente: 'Prof. Romero' },
-      { dia: 'Jueves', hora_inicio: '08:00', hora_fin: '09:00', materia: 'Ciencias Sociales', docente: 'Prof. Díaz' },
+      { dia: 'Lunes', hora_inicio: '08:00', hora_fin: '12:00', materia: 'Prácticas del Lenguaje', docente: 'Prof. Fernández' },
+      { dia: 'Martes', hora_inicio: '08:00', hora_fin: '10:00', materia: 'Matemática', docente: 'Prof. Castro' },
     ],
     logs: [
       {
-        id: '1',
+        id: 'l1',
         fecha: diasAtras(1),
-        observacion: 'Lucas trabajó bien con las consignas fragmentadas. Completó 3 de 4 actividades de Lengua sin frustrarse.',
+        observacion: 'Lucas logró permanecer en el aula durante todo el bloque de Lengua. Utilizó apoyos visuales para secuenciar la tarea del cuento "El gato con botas".',
         participo: true, se_frustro: false, uso_apoyo_visual: true, trabajo_en_grupo: false,
       },
       {
-        id: '2',
+        id: 'l2',
         fecha: diasAtras(3),
-        observacion: 'Jornada difícil. Se frustró al cambiar de actividad sin anticipación. Mejoró con la tabla visual al final de la clase.',
+        observacion: 'Se observó sensibilidad sensorial ante ruidos en el recreo. En el aula, trabajó bien con auriculares canceladores de ruido.',
         participo: false, se_frustro: true, uso_apoyo_visual: true, trabajo_en_grupo: false,
       },
       {
-        id: '3',
+        id: 'l3',
         fecha: diasAtras(5),
-        observacion: 'Excelente participación en trabajo grupal de Ciencias Naturales. Tomó el rol de "lector" del grupo.',
-        participo: true, se_frustro: false, uso_apoyo_visual: false, trabajo_en_grupo: true,
+        observacion: 'Excelente avance en la escritura autónoma de palabras sencillas. Identificó fonemas iniciales con tarjetas.',
+        participo: true, se_frustro: false, uso_apoyo_visual: true, trabajo_en_grupo: true,
       },
     ],
-    asistencia: {
-      [fechaMes(año, mes, 1)]: 'presente',
-      [fechaMes(año, mes, 2)]: 'presente',
-      [fechaMes(año, mes, 3)]: 'presente',
-      [fechaMes(año, mes, 4)]: 'ausente',
-      [fechaMes(año, mes, 7)]: 'tardanza',
-      [fechaMes(año, mes, 8)]: 'presente',
-      [fechaMes(año, mes, 9)]: 'presente',
-      [fechaMes(año, mes, 10)]: 'presente',
-    },
+    asistencia: {},
+    documentos: [
+      { id: 'd1', nombre: 'Certificado Único de Discapacidad', fecha: '2023-05-12', tipo: 'pdf', descripcion: 'CUD actualizado' },
+      { id: 'd2', nombre: 'Informe Neurológico', fecha: '2024-02-10', tipo: 'doc', descripcion: 'Informe Dr. Silva' }
+    ],
+    perfil_pedagogico: {
+      como_aprende: 'Aprende mejor a través de secuencias visuales claras y rutinas estructuradas. Requiere anticipación de los cambios.',
+      etapa_lectura: 'Alfabética',
+      etapa_matematica: 'Preconceptual',
+      andamiajes: 'Apoyo visual (pictogramas), auriculares canceladores de ruido, tareas fraccionadas.',
+      habilidades_intereses: 'Dinosaurios, trenes, muy buena memoria visual y facilidad para armar rompecabezas.'
+    }
   },
   {
     slug: 'valentina',
@@ -123,59 +148,67 @@ export const ALUMNOS: Alumno[] = [
     cud: false,
     colegio: {
       nombre: 'EP Nro 7 "Manuel Belgrano"',
-      direccion: 'Calle Rivadavia 567, Lomas de Zamora',
-      telefono: '4 292-5678',
+      direccion: 'Rivadavia 567',
+      telefono: '011 42925678',
       director_nombre: 'Carmen Suárez',
       director_tel: '5491134567890',
     },
     horarios: [
-      { dia: 'Lunes', hora_inicio: '09:00', hora_fin: '10:30', materia: 'Prácticas del Lenguaje', docente: 'Prof. Giménez' },
-      { dia: 'Miércoles', hora_inicio: '08:00', hora_fin: '09:30', materia: 'Matemática', docente: 'Prof. Vargas' },
+      { dia: 'Miércoles', hora_inicio: '13:00', hora_fin: '17:00', materia: 'Ciencias Naturales', docente: 'Prof. Giménez' },
     ],
     logs: [
       {
-        id: '4',
+        id: 'v1',
         fecha: diasAtras(2),
-        observacion: 'Valentina participó activamente. Necesitó recordatorio de turnos x2 pero logró trabajar en grupo sin conflictos.',
+        observacion: 'Valentina necesitó varios recordatorios para mantenerse en la tarea. Logró completar el experimento de germinación con supervisión constante.',
         participo: true, se_frustro: false, uso_apoyo_visual: false, trabajo_en_grupo: true,
       },
+      {
+        id: 'v2',
+        fecha: diasAtras(4),
+        observacion: 'Jornada muy productiva. Se sentó en el primer banco y esto ayudó a reducir distracciones externas.',
+        participo: true, se_frustro: false, uso_apoyo_visual: false, trabajo_en_grupo: false,
+      },
     ],
-    asistencia: {
-      [fechaMes(año, mes, 1)]: 'presente',
-      [fechaMes(año, mes, 2)]: 'presente',
-      [fechaMes(año, mes, 3)]: 'tardanza',
-      [fechaMes(año, mes, 7)]: 'presente',
-      [fechaMes(año, mes, 8)]: 'presente',
-    },
+    asistencia: {},
+    perfil_pedagogico: {
+      como_aprende: 'Aprende de manera kinestésica y mediante el aprendizaje basado en proyectos. Necesita descansos frecuentes.',
+      etapa_lectura: 'Ortográfica',
+      etapa_matematica: 'Conceptual',
+      andamiajes: 'Sentarse en los primeros bancos, pausas activas cada 20 minutos, material concreto en matemáticas.',
+      habilidades_intereses: 'Artes plásticas, animales, le gusta ayudar a repartir materiales.'
+    }
   },
   {
     slug: 'mateo',
     nombre: 'Mateo',
     apellido: 'González',
-    diagnostico: 'DI',
+    diagnostico: 'Discapacidad intelectual',
     cud: true,
     colegio: {
       nombre: 'ES Nro 3 "9 de Julio"',
-      direccion: 'Bv. Rosas 890, Lomas de Zamora',
-      telefono: '4 292-9012',
+      direccion: 'Bv. Rosas 890',
+      telefono: '011 42929012',
       director_nombre: 'Roberto Díaz',
       director_tel: '5491156789012',
-      eoe_nombre: 'Marcelo Ríos',
-      eoe_rol: 'Trabajador Social',
-      eoe_tel: '5491167890123',
     },
-    horarios: [
-      { dia: 'Martes', hora_inicio: '08:00', hora_fin: '09:00', materia: 'Matemática', docente: 'Prof. Morales' },
-      { dia: 'Jueves', hora_inicio: '10:00', hora_fin: '11:30', materia: 'Prácticas del Lenguaje', docente: 'Prof. Acosta' },
-      { dia: 'Viernes', hora_inicio: '08:00', hora_fin: '09:00', materia: 'Ciencias Sociales', docente: 'Prof. Herrera' },
+    horarios: [],
+    logs: [
+      {
+        id: 'm1',
+        fecha: diasAtras(1),
+        observacion: 'Mateo reconoció los números del 1 al 10 en la recta numérica. Requiere apoyo físico para el trazado de algunas cifras.',
+        participo: true, se_frustro: false, uso_apoyo_visual: true, trabajo_en_grupo: false,
+      },
     ],
-    logs: [],
-    asistencia: {
-      [fechaMes(año, mes, 1)]: 'presente',
-      [fechaMes(año, mes, 2)]: 'ausente',
-      [fechaMes(año, mes, 3)]: 'presente',
-      [fechaMes(año, mes, 7)]: 'presente',
-    },
+    asistencia: {},
+    perfil_pedagogico: {
+      como_aprende: 'Aprendizaje por imitación y repetición. Requiere modelado constante y refuerzo positivo inmediato.',
+      etapa_lectura: 'Presilábica',
+      etapa_matematica: 'Sensoriomotora',
+      andamiajes: 'Apoyo físico para grafomotricidad, pictogramas, instrucciones paso a paso muy cortas.',
+      habilidades_intereses: 'Música, canciones infantiles, jugar con masa o arcilla.'
+    }
   },
 ]
 
@@ -185,24 +218,43 @@ export function getAlumno(slug: string): Alumno | undefined {
 
 export function getColorDiagnostico(diagnostico: Diagnostico | string | null) {
   switch (diagnostico) {
-    case 'TEA': return {
-      bg: 'bg-indigo-500',
-      light: 'bg-indigo-100 text-indigo-700',
-      border: 'border-l-indigo-500',
-    }
-    case 'TDAH': return {
-      bg: 'bg-emerald-500',
-      light: 'bg-emerald-100 text-emerald-700',
-      border: 'border-l-emerald-500',
-    }
-    case 'DI': return {
-      bg: 'bg-orange-500',
-      light: 'bg-orange-100 text-orange-700',
-      border: 'border-l-orange-500',
-    }
+    case 'TEA':
+    case 'TES':
+      return {
+        bg: 'bg-indigo-500',
+        light: 'bg-indigo-500/10 text-indigo-400',
+        border: 'border-l-indigo-500',
+      }
+    case 'TDAH':
+    case 'TDA':
+      return {
+        bg: 'bg-emerald-500',
+        light: 'bg-emerald-500/10 text-emerald-400',
+        border: 'border-l-emerald-500',
+      }
+    case 'Discapacidad intelectual':
+    case 'DI':
+      return {
+        bg: 'bg-orange-500',
+        light: 'bg-orange-500/10 text-orange-400',
+        border: 'border-l-orange-500',
+      }
+    case 'Discapacidad motora':
+      return {
+        bg: 'bg-rose-500',
+        light: 'bg-rose-500/10 text-rose-400',
+        border: 'border-l-rose-500',
+      }
+    case 'Discapacidad visual':
+    case 'Discapacidad auditiva':
+      return {
+        bg: 'bg-sky-500',
+        light: 'bg-sky-500/10 text-sky-400',
+        border: 'border-l-sky-500',
+      }
     default: return {
       bg: 'bg-slate-500',
-      light: 'bg-slate-100 text-slate-700',
+      light: 'bg-slate-500/10 text-slate-400',
       border: 'border-l-slate-500',
     }
   }

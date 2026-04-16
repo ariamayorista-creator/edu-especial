@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getAlumno, formatFecha, type LogDiario } from '@/lib/mock'
+import Link from 'next/link'
+import { formatFecha, type LogDiario } from '@/lib/mock'
+import { useStudents } from '@/lib/context/StudentContext'
 const INDICADORES = [
   { key: 'participo' as const, label: 'Participó', emoji: '🙋' },
   { key: 'se_frustro' as const, label: 'Se frustró', emoji: '😤' },
@@ -14,10 +16,12 @@ type Indicadores = { participo: boolean; se_frustro: boolean; uso_apoyo_visual: 
 export default function RegistrosPage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
-  const alumno = getAlumno(slug)
+  const { students, addLog } = useStudents()
+  const alumno = students.find(s => s.slug === slug)
+  
   if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
-  const [logs, setLogs] = useState<LogDiario[]>(alumno.logs)
+  const logs = alumno.logs
   const [mostrarForm, setMostrarForm] = useState(false)
   const [texto, setTexto] = useState('')
   const [indicadores, setIndicadores] = useState<Indicadores>({
@@ -32,7 +36,9 @@ export default function RegistrosPage() {
       observacion: texto,
       ...indicadores,
     }
-    setLogs([nuevo, ...logs])
+    
+    addLog(slug, nuevo)
+    
     setTexto('')
     setIndicadores({ participo: false, se_frustro: false, uso_apoyo_visual: false, trabajo_en_grupo: false })
     setMostrarForm(false)
@@ -46,11 +52,13 @@ export default function RegistrosPage() {
 
   return (
     <div className="p-4">
-      <div className="flex items-center gap-3 mb-6 pt-6">
-        <button onClick={() => router.back()} className="text-slate-400 text-2xl leading-none">‹</button>
+      <div className="flex items-center gap-4 mb-6 pt-6">
+        <Link href={`/alumnos/${alumno.slug}`} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-4xl leading-none font-light active:scale-90 transition-transform">
+          ←
+        </Link>
         <div>
-          <h1 className="text-xl font-bold text-white">Registros diarios</h1>
-          <p className="text-slate-400 text-sm">{alumno.nombre} {alumno.apellido}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">Registros diarios</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{alumno.nombre} {alumno.apellido}</p>
         </div>
       </div>
 

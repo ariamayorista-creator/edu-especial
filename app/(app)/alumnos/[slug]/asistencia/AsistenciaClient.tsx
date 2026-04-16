@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getAlumno, type EstadoAsistencia } from '@/lib/mock'
+import { type EstadoAsistencia } from '@/lib/mock'
+import { useStudents } from '@/lib/context/StudentContext'
 const CICLO: (EstadoAsistencia | null)[] = ['presente', 'ausente', 'tardanza', null]
 
 function diasEnMes(año: number, mes: number) { return new Date(año, mes + 1, 0).getDate() }
@@ -15,13 +16,15 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 export default function AsistenciaPage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
-  const alumno = getAlumno(slug)
+  const { students, setAsistencia } = useStudents()
+  const alumno = students.find(s => s.slug === slug)
+  
   if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
 
   const hoy = new Date()
   const [mes, setMes] = useState(hoy.getMonth())
   const [año, setAño] = useState(hoy.getFullYear())
-  const [asistencia, setAsistencia] = useState<Record<string, EstadoAsistencia>>(alumno.asistencia)
+  const asistencia = alumno.asistencia
 
   function cambiarMes(delta: number) {
     let nuevoMes = mes + delta
@@ -37,12 +40,7 @@ export default function AsistenciaPage() {
     const actual = asistencia[key] ?? null
     const idx = CICLO.indexOf(actual)
     const siguiente = CICLO[(idx + 1) % CICLO.length]
-    setAsistencia(prev => {
-      const next = { ...prev }
-      if (siguiente === null) delete next[key]
-      else next[key] = siguiente
-      return next
-    })
+    setAsistencia(slug, key, siguiente)
   }
 
   const dias = diasEnMes(año, mes)

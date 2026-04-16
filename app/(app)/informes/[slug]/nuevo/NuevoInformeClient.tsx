@@ -1,8 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getAlumno } from '@/lib/mock'
+import { useStudents } from '@/lib/context/StudentContext'
+import Link from 'next/link'
 type Resultado = 'si' | 'no' | 'parcial' | ''
+
+const TRIMESTRES = [
+  { num: 1, label: '1° Trimestre', periodo: 'Marzo – Junio' },
+  { num: 2, label: '2° Trimestre', periodo: 'Julio – Septiembre' },
+  { num: 3, label: '3° Trimestre', periodo: 'Octubre – Diciembre' },
+]
 
 interface Intervencion {
   nombre: string
@@ -19,12 +26,6 @@ const INTERVENCIONES_BASE = [
   'Acompañamiento individual',
 ]
 
-const TRIMESTRES = [
-  { num: 1, label: '1° Trimestre', periodo: 'Marzo – Junio' },
-  { num: 2, label: '2° Trimestre', periodo: 'Julio – Septiembre' },
-  { num: 3, label: '3° Trimestre', periodo: 'Octubre – Diciembre' },
-]
-
 const RESULTADOS: { value: Resultado; label: string; color: string; active: string }[] = [
   { value: 'si', label: 'Sí', color: 'bg-slate-700 text-slate-300', active: 'bg-emerald-600 text-white' },
   { value: 'parcial', label: 'Parcial', color: 'bg-slate-700 text-slate-300', active: 'bg-yellow-500 text-white' },
@@ -34,9 +35,9 @@ const RESULTADOS: { value: Resultado; label: string; color: string; active: stri
 export default function NuevoInformePage() {
   const { slug } = useParams() as { slug: string }
   const router = useRouter()
-  const alumno = getAlumno(slug)
-  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
-
+  const { students } = useStudents()
+  const alumno = students.find(s => s.slug === slug)
+  
   const [paso, setPaso] = useState(1)
   const [trimestre, setTrimestre] = useState<number>(1)
   const [intervenciones, setIntervenciones] = useState<Intervencion[]>(
@@ -46,8 +47,11 @@ export default function NuevoInformePage() {
   const [avancesMatematica, setAvancesMatematica] = useState('')
   const [avancesGenerales, setAvancesGenerales] = useState('')
   const [toast, setToast] = useState('')
+  const [isCompiling, setIsCompiling] = useState(false)
 
-  const asistencias = Object.values(alumno.asistencia)
+  if (!alumno) return <div className="p-8 text-center text-slate-400">Alumno no encontrado</div>
+
+  const asistencias = Object.values(alumno.asistencia || {})
   const presentes = asistencias.filter(e => e === 'presente').length
   const ausentes = asistencias.filter(e => e === 'ausente').length
   const tardanzas = asistencias.filter(e => e === 'tardanza').length
@@ -67,9 +71,53 @@ export default function NuevoInformePage() {
     else router.push('/informes')
   }
 
+  async function AI_Generate() {
+    if (!alumno) return;
+    setIsCompiling(true)
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alumno: alumno!, logs: alumno!.logs, tipo: 'informe' })
+      })
+      if (!res.ok) throw new Error('Error en IA')
+      const data = await res.json()
+      setAvancesLengua(data.avances_lengua || '')
+      setAvancesMatematica(data.avances_matematica || '')
+      setAvancesGenerales(data.avances_generales || '')
+      setToast('¡Autocompletado con IA exitoso! ✦')
+      setTimeout(() => setToast(''), 2500)
+    } catch (e) {
+      console.error(e)
+      setToast('Verificar GOOGLE_API_KEY o conexión')
+    } finally {
+      setIsCompiling(false)
+    }
+  }
+
   function guardar() {
     setToast('Informe guardado ✓')
     setTimeout(() => router.push(`/alumnos/${slug}`), 1800)
+  }
+
+  async function descargarPDF() {
+    if (!alumno) return;
+    try {
+      // @ts-ignore
+      const html2pdf = (await import('html2pdf.js')).default;
+      const element = document.getElementById('informe-preview');
+      const opt = {
+        margin:       10,
+        filename:     `Informe_${alumno!.apellido}_${TRIMESTRES.find(t=>t.num===trimestre)?.label || ''}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    } catch (e) {
+      console.error("No se pudo cargar html2pdf", e)
+      setToast("Error al exportar. Comprueba instalación html2pdf")
+    }
   }
 
   const intervCompletadas = intervenciones.filter(i => i.resultado !== '').length
@@ -77,13 +125,15 @@ export default function NuevoInformePage() {
   return (
     <div className="p-4 pb-36">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4 pt-6">
-        <button onClick={volverOSalir} className="text-slate-400 text-2xl leading-none">‹</button>
+      <div className="flex items-center gap-4 mb-6 pt-6">
+        <button onClick={volverOSalir} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-4xl leading-none font-light active:scale-90 transition-transform">
+          ←
+        </button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-white">Informe Trimestral</h1>
-          <p className="text-slate-400 text-sm">{alumno.nombre} {alumno.apellido}</p>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">Informe Trimestral</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{alumno.nombre} {alumno.apellido}</p>
         </div>
-        <span className="text-slate-500 text-sm">Paso {paso}/4</span>
+        <span className="text-slate-500 text-sm font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">Paso {paso}/4</span>
       </div>
 
       {/* Barra de progreso */}
@@ -95,14 +145,18 @@ export default function NuevoInformePage() {
 
       {/* PASO 1 — Trimestre */}
       {paso === 1 && (
-        <div>
-          <p className="text-white text-lg font-semibold mb-4">¿Qué trimestre es?</p>
-          <div className="space-y-3">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <p className="text-slate-900 dark:text-white text-xl font-black mb-6">¿Qué trimestre es?</p>
+          <div className="space-y-4">
             {TRIMESTRES.map(t => (
               <button key={t.num} onClick={() => setTrimestre(t.num)}
-                className={`w-full rounded-2xl p-4 text-left transition-colors ${trimestre === t.num ? 'bg-indigo-600' : 'bg-slate-800 active:bg-slate-700'}`}>
-                <p className="font-semibold text-white">{t.label} {new Date().getFullYear()}</p>
-                <p className={`text-sm mt-0.5 ${trimestre === t.num ? 'text-indigo-200' : 'text-slate-400'}`}>{t.periodo}</p>
+                className={`w-full rounded-3xl p-5 text-left transition-all border shadow-sm dark:shadow-none ${
+                  trimestre === t.num 
+                    ? 'bg-indigo-600 dark:bg-indigo-600 text-white border-indigo-500' 
+                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                }`}>
+                <p className={`font-black text-lg ${trimestre === t.num ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{t.label} {new Date().getFullYear()}</p>
+                <p className={`text-sm mt-0.5 ${trimestre === t.num ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>{t.periodo}</p>
               </button>
             ))}
           </div>
@@ -111,13 +165,13 @@ export default function NuevoInformePage() {
 
       {/* PASO 2 — Intervenciones */}
       {paso === 2 && (
-        <div>
-          <p className="text-white text-lg font-semibold mb-1">¿Cómo funcionaron las intervenciones?</p>
-          <p className="text-slate-400 text-sm mb-4">Marcá el resultado de cada estrategia este trimestre</p>
-          <div className="space-y-3">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <p className="text-slate-900 dark:text-white text-xl font-black mb-1">¿Cómo funcionaron las intervenciones?</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Basado en tu uso en el aula, indicalo para exportarlo luego.</p>
+          <div className="space-y-4">
             {intervenciones.map((item, i) => (
-              <div key={i} className="bg-slate-800 rounded-2xl p-4">
-                <p className="text-white text-sm font-medium mb-3">{item.nombre}</p>
+              <div key={i} className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none">
+                <p className="text-slate-900 dark:text-white text-base font-bold mb-4">{item.nombre}</p>
                 <div className="flex gap-2 mb-2">
                   {RESULTADOS.map(opt => (
                     <button key={opt.value} onClick={() => setResultado(i, opt.value)}
@@ -131,23 +185,25 @@ export default function NuevoInformePage() {
                     value={item.comentario}
                     onChange={e => setComentario(i, e.target.value)}
                     placeholder="Comentario (opcional)"
-                    className="w-full bg-slate-700 text-white rounded-xl px-3 py-2 text-sm placeholder:text-slate-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full bg-slate-100 dark:bg-slate-900/50 text-slate-900 dark:text-white rounded-2xl px-4 py-3 text-sm placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow mt-3"
                   />
                 )}
               </div>
             ))}
           </div>
-          {intervCompletadas > 0 && (
-            <p className="text-slate-500 text-xs text-center mt-3">{intervCompletadas} de {intervenciones.length} intervenciones marcadas</p>
-          )}
         </div>
       )}
 
       {/* PASO 3 — Avances */}
       {paso === 3 && (
-        <div>
-          <p className="text-white text-lg font-semibold mb-1">¿Qué avances observaste?</p>
-          <div className="flex items-center gap-2 bg-slate-800 rounded-xl px-3 py-2 mb-4 w-fit">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center justify-between mb-4">
+             <p className="text-slate-900 dark:text-white text-xl font-black mb-1">¿Qué avances observaste?</p>
+             <button onClick={AI_Generate} disabled={isCompiling} className="bg-amber-500 text-black px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active-scale shadow-lg shadow-amber-500/20 disabled:opacity-50">
+                {isCompiling ? '⌛ Pensando...' : '✦ Rellenar con IA'}
+             </button>
+          </div>
+          <div className="flex items-center gap-2 bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl px-4 py-3 mb-6 w-fit">
             <span className="text-slate-400 text-xs">Asistencia:</span>
             <span className="text-emerald-400 text-xs font-medium">✓ {presentes}</span>
             <span className="text-red-400 text-xs font-medium">✗ {ausentes}</span>
@@ -161,10 +217,10 @@ export default function NuevoInformePage() {
               { label: '📝 Avances generales', val: avancesGenerales, set: setAvancesGenerales, ph: 'Ej: Durante este trimestre se observaron avances en la autonomía y la participación grupal. Los ajustes implementados resultaron adecuados...' },
             ].map(campo => (
               <div key={campo.label}>
-                <label className="block text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">{campo.label}</label>
+                <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">{campo.label}</label>
                 <textarea value={campo.val} onChange={e => campo.set(e.target.value)}
-                  placeholder={campo.ph} rows={3}
-                  className="w-full bg-slate-800 text-white rounded-2xl p-4 text-sm placeholder:text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                  placeholder={campo.ph} rows={4}
+                  className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm dark:shadow-none" />
               </div>
             ))}
           </div>
@@ -173,44 +229,73 @@ export default function NuevoInformePage() {
 
       {/* PASO 4 — Preview */}
       {paso === 4 && (
-        <div>
-          <p className="text-white text-lg font-semibold mb-4">Resumen del informe</p>
-          <div className="bg-slate-800 rounded-2xl p-4 space-y-4 text-sm">
-            <div>
-              <p className="text-slate-400 text-xs uppercase font-semibold mb-1">Alumno</p>
-              <p className="text-white">{alumno.nombre} {alumno.apellido} · {TRIMESTRES.find(t => t.num === trimestre)?.label} {new Date().getFullYear()}</p>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <p className="text-slate-900 dark:text-white text-xl font-black mb-6">Resumen del informe</p>
+          
+          <div id="informe-preview" className="bg-white dark:bg-slate-800 rounded-3xl p-8 space-y-6 text-sm border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <div className="text-center border-b border-slate-200 dark:border-slate-700 pb-4">
+               <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">Informe Pedagógico Individual</h2>
+               <p className="text-slate-500 dark:text-slate-400 text-sm">Dirección General de Cultura y Educación (Comunicación 71/22)</p>
             </div>
-            <div className="border-t border-slate-700 pt-4">
-              <p className="text-slate-400 text-xs uppercase font-semibold mb-2">Intervenciones</p>
-              {intervenciones.filter(i => i.resultado !== '').length === 0 && (
-                <p className="text-slate-500 text-sm">Sin intervenciones marcadas</p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-0.5">Estudiante</p>
+                <p className="text-slate-900 dark:text-white font-bold text-base">{alumno.nombre} {alumno.apellido}</p>
+              </div>
+              <div>
+                 <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-0.5">Diagnóstico Técnico</p>
+                 <p className="text-slate-900 dark:text-white font-bold">{alumno.diagnostico}</p>
+              </div>
+              <div>
+                 <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-0.5">Período de Evaluación</p>
+                 <p className="text-slate-900 dark:text-white font-bold">{TRIMESTRES.find(t => t.num === trimestre)?.label} {new Date().getFullYear()}</p>
+              </div>
+            </div>
+            
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+              <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest mb-3">Valoración de Intervenciones y Apoyos</p>
               {intervenciones.filter(i => i.resultado !== '').map((item, i) => (
-                <div key={i} className="flex items-start gap-2 mb-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                    item.resultado === 'si' ? 'bg-emerald-100 text-emerald-700'
-                    : item.resultado === 'parcial' ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-red-100 text-red-700'
+                <div key={i} className="flex items-start gap-3 mb-2">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-xl flex-shrink-0 ${
+                    item.resultado === 'si' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
+                    : item.resultado === 'parcial' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
                   }`}>
-                    {item.resultado === 'si' ? 'Sí' : item.resultado === 'parcial' ? 'Parcial' : 'No'}
+                    {item.resultado === 'si' ? 'Efectivo' : item.resultado === 'parcial' ? 'Parcial' : 'No efectivo'}
                   </span>
                   <div>
-                    <span className="text-slate-200">{item.nombre}</span>
-                    {item.comentario && <p className="text-slate-400 text-xs mt-0.5">{item.comentario}</p>}
+                    <span className="text-slate-800 dark:text-slate-200 font-bold">{item.nombre}</span>
+                    {item.comentario && <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 !leading-snug">{item.comentario}</p>}
                   </div>
                 </div>
               ))}
             </div>
-            {avancesGenerales && (
-              <div className="border-t border-slate-700 pt-4">
-                <p className="text-slate-400 text-xs uppercase font-semibold mb-1">Avances generales</p>
-                <p className="text-slate-200 leading-relaxed">{avancesGenerales}</p>
-              </div>
-            )}
-            <div className="bg-indigo-900/40 rounded-xl p-3 border border-indigo-800/50">
-              <p className="text-indigo-300 text-xs">✦ En fase 2: la IA generará el texto formal completo y exportará en Word y PDF usando todos tus registros diarios</p>
+            
+            <div className="space-y-4">
+              {avancesLengua && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                  <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest mb-2">Prácticas del Lenguaje</p>
+                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium text-[13px]">{avancesLengua}</p>
+                </div>
+              )}
+              {avancesMatematica && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                  <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest mb-2">Matemática</p>
+                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium text-[13px]">{avancesMatematica}</p>
+                </div>
+              )}
+              {avancesGenerales && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                  <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest mb-2">Progreso General e Interacción</p>
+                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium text-[13px]">{avancesGenerales}</p>
+                </div>
+              )}
             </div>
           </div>
+          
+          <button onClick={descargarPDF} className="w-full mt-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active-scale shadow-xl">
+             Descargar en PDF para entregar ⬇
+          </button>
         </div>
       )}
 
@@ -222,7 +307,7 @@ export default function NuevoInformePage() {
       )}
 
       {/* Barra fija inferior */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-slate-900 border-t border-slate-800 z-40">
+      <div className="fixed bottom-0 pb-safe left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-white/5 z-40">
         <div className="max-w-2xl mx-auto">
           {paso < 4 ? (
             <button onClick={() => setPaso(p => p + 1)}
