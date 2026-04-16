@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { type EstadoAsistencia } from '@/lib/mock'
 import { useStudents } from '@/lib/context/StudentContext'
 const CICLO: (EstadoAsistencia | null)[] = ['presente', 'ausente', 'tardanza', null]
@@ -15,7 +16,6 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 
 export default function AsistenciaPage() {
   const { slug } = useParams() as { slug: string }
-  const router = useRouter()
   const { students, setAsistencia } = useStudents()
   const alumno = students.find(s => s.slug === slug)
   
@@ -58,17 +58,19 @@ export default function AsistenciaPage() {
     if (estado === 'presente') return 'bg-emerald-500 text-white'
     if (estado === 'ausente') return 'bg-red-500 text-white'
     if (estado === 'tardanza') return 'bg-yellow-500 text-white'
-    if (esHoy) return 'bg-slate-600 text-white ring-2 ring-indigo-400'
-    return 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+    if (esHoy) return 'bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-white ring-2 ring-indigo-400'
+    return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-3 mb-6 pt-6">
-        <button onClick={() => router.back()} className="text-slate-400 text-2xl leading-none">‹</button>
+    <div className="p-4 pb-32">
+      <div className="flex items-center gap-4 mb-8 pt-8">
+        <Link href={`/alumnos/${slug}`} className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 hover:scale-110 active:scale-90 transition-all shadow-lg">
+          <span className="text-2xl mt-[-2px]">←</span>
+        </Link>
         <div>
-          <h1 className="text-xl font-bold text-white">Asistencia</h1>
-          <p className="text-slate-400 text-sm">{alumno.nombre} {alumno.apellido}</p>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Asistencia</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">{alumno.nombre} {alumno.apellido}</p>
         </div>
       </div>
 

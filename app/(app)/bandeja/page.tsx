@@ -104,14 +104,16 @@ Generado automáticamente por Edu-Especial ✦
   return (
     <div className="p-4 pb-36">
       {/* Header */}
-      <div className="pt-10 mb-8">
-        <div className="flex items-center gap-3 mb-1">
-          <span className="text-3xl">📥</span>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Bandeja</h1>
+      <div className="flex items-center gap-4 mb-8 pt-8">
+        <Link href="/" className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 hover:scale-110 active:scale-90 transition-all shadow-lg">
+          <span className="text-2xl mt-[-2px]">←</span>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">📥 Bandeja</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">
+            Tus informes generados con IA aparecerán aquí
+          </p>
         </div>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium ml-1">
-          Tus informes generados con IA aparecerán aquí
-        </p>
       </div>
 
       {/* Lista de trabajos */}
