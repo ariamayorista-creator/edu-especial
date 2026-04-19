@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salar - Marketplace EDU-ESPECIAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: -2rem auto 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .api-key-config {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.8rem;
+        }
+
+        .api-key-config input {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.4rem;
+            width: 250px;
+            margin-left: 0.5rem;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .filter-pill {
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .filter-pill:hover, .filter-pill.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card.selected {
+            border: 2px solid var(--secondary);
+            background: rgba(236, 72, 153, 0.05);
+        }
+
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .tag-nee { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .tag-lengua { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .tag-cuento { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .tag-historia { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .tag-matematica { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+        .tag-ciencias { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        .card .info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .banner {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+            min-width: 320px;
+            justify-content: space-between;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { bottom: -100px; }
+            to { bottom: 2rem; }
+        }
+
+        .banner-text {
+            font-weight: 600;
+        }
+
+        .buy-btn {
+            background: white;
+            color: black;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.05);
+            background: #f1f5f9;
+        }
+
+        .buy-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Marketplace EDU-ESPECIAL</h1>
+    <p>Recursos adaptados para una educación sin barreras</p>
+</header>
+
+<div class="container">
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Busca por tema, grado o necesidad... (Enter para búsqueda IA)">
+        <div id="loading" style="display:none; text-align:center; margin-top:1rem; font-size:0.8rem; color:var(--secondary)">
+            Consultando a Gemini 3 Flash... ✨
+        </div>
+    </div>
+
+    <div class="api-key-config">
+        <span>Google AI API Key:</span>
+        <input type="password" id="apiKey" placeholder="Ingresa tu clave de Google Cloud..." onchange="saveApiKey(this.value)">
+    </div>
+
+    <div class="filters" id="filters">
+        <button class="filter-pill active" onclick="filterBy('all')">Todos</button>
+        <button class="filter-pill" onclick="filterBy('nee')">NEE</button>
+        <button class="filter-pill" onclick="filterBy('cuento')">Cuentos</button>
+        <button class="filter-pill" onclick="filterBy('ciencias')">Ciencias</button>
+        <button class="filter-pill" onclick="filterBy('matematica')">Matemática</button>
+        <button class="filter-pill" onclick="filterBy('lengua')">Lengua</button>
+        <button class="filter-pill" onclick="filterBy('historia')">Historia</button>
+    </div>
+
+    <div class="grid" id="resourceGrid">
+        <!-- Rendered by JS -->
+    </div>
+</div>
+
+<div class="banner" id="promoBanner">
+    <div class="banner-text" id="bannerText">Elegí 2 recursos y pagás solo $10.000</div>
+    <button class="buy-btn" id="buyBtn" disabled onclick="handleBuy()">Comprar pack</button>
+</div>
+
+<script>
+    const recursos = [
+        { id:1, title:"Secuencia TEA: Matemática con material concreto", tag:"nee", tagLabel:"NEE", year:"1° a 3° grado", tema:"Matemática adaptada", price:7000, desc:"Adaptaciones específicas para estudiantes con desafíos en el procesamiento abstracto." },
+        { id:2, title:"Pictogramas ARASAAC: set completo para el aula", tag:"nee", tagLabel:"NEE", year:"Todos los niveles", tema:"Comunicación", price:6500, desc:"Set de 500 pictogramas organizados por rutinas, materias y emociones." },
+        { id:3, title:"Cuento 'El mundo de Tomás': autismo explicado", tag:"cuento", tagLabel:"Cuento", year:"Jardín a 2° grado", tema:"Inclusión", price:5000, desc:"Recurso visual para trabajar la sensibilización en el grupo de pares." },
+        { id:4, title:"Guía docente: baja visión en secundaria", tag:"nee", tagLabel:"NEE", year:"Secundaria", tema:"Discapacidad visual", price:8500, desc:"Manual práctico para realizar configuraciones de apoyo y accesibilidad." },
+        { id:5, title:"Fichas de Lengua con lectura fácil — Nivel 1", tag:"lengua", tagLabel:"Lengua", year:"1° y 2° grado", tema:"Comprensión lectora", price:5500, desc:"Textos adaptados bajo normas de lectura fácil y tipografía legible." },
+        { id:6, title:"Historia Argentina: línea de tiempo visual", tag:"historia", tagLabel:"Historia", year:"4° a 6° grado", tema:"Historia argentina", price:7500, desc:"Secuencias históricas con fuerte soporte de imagen y síntesis conceptual." },
+        { id:7, title:"Matemática: fracciones manipulables", tag:"matematica", tagLabel:"Matemática", year:"4° y 5° grado", tema:"Fracciones", price:7000, desc:"Kits descargables para armar y comprender las partes del entero." },
+        { id:8, title:"Agenda visual semanal: plantillas editables", tag:"nee", tagLabel:"NEE", year:"Todos los niveles", tema:"Autonomía", price:4500, desc:"Organizadores visuales que reducen la ansiedad ante el cambio de rutinas." },
+        { id:9, title:"Biología: el cuerpo humano accesible", tag:"ciencias", tagLabel:"Ciencias", year:"2° a 4° grado", tema:"Cuerpo humano", price:6500, desc:"Diagramas de alto contraste y etiquetas claras para facilitar la identificación." },
+        { id:10, title:"Evaluaciones orales: guía de rúbricas EOE", tag:"nee", tagLabel:"NEE", year:"Secundaria", tema:"Evaluación inclusiva", price:9000, desc:"Modelos de evaluación y criterios de calificación para diversificar el aula." }
+    ];
+
+    let selectedIds = [];
+    let currentFilter = 'all';
+
+    function init() {
+        const savedKey = localStorage.getItem('google_ai_key');
+        if (savedKey) document.getElementById('apiKey').value = savedKey;
+        renderResources(recursos);
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = recursos.filter(r => 
+                r.title.toLowerCase().includes(term) || 
+                r.tema.toLowerCase().includes(term) ||
+                r.desc.toLowerCase().includes(term)
+            );
+            renderResources(filtered);
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleAISearch(e.target.value);
+        });
+    }
+
+    function renderResources(items) {
+        const grid = document.getElementById('resourceGrid');
+        if (items.length === 0) {
+            grid.innerHTML = '<div class="empty-state">No se encontraron recursos. Intenta con otra búsqueda.</div>';
+            return;
+        }
+
+        grid.innerHTML = items.map(r => `
+            <div class="card ${selectedIds.includes(r.id) ? 'selected' : ''}" onclick="toggleSelect(${r.id})">
+                <span class="tag tag-${r.tag}">${r.tagLabel}</span>
+                <h3>${r.title}</h3>
+                <p>${r.desc}</p>
+                <div class="info">
+                    <span class="price">$${r.price.toLocaleString()}</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted)">${r.year}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleSelect(id) {
+        const index = selectedIds.indexOf(id);
+        if (index > -1) {
+            selectedIds.splice(index, 1);
+        } else {
+            if (selectedIds.length >= 2) {
+                selectedIds.shift(); // FIFO: Elimina el primero
+            }
+            selectedIds.push(id);
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        renderResources(recursos); // Re-render to show selection
+        const buyBtn = document.getElementById('buyBtn');
+        const bannerText = document.getElementById('bannerText');
+
+        if (selectedIds.length === 2) {
+            buyBtn.disabled = false;
+            bannerText.innerHTML = `🌟 <strong>Pack 2 recursos: $10.000</strong> <span style="text-decoration: line-through; margin-left:10px; opacity:0.6">$${calculateTotal().toLocaleString()}</span>`;
+            bannerText.style.color = "white";
+        } else {
+            buyBtn.disabled = true;
+            bannerText.innerText = selectedIds.length === 1 
+                ? `Falta 1 recurso para el pack! ($${recursos.find(r=>r.id===selectedIds[0]).price.toLocaleString()})`
+                : "Elegí 2 recursos y pagás solo $10.000";
+        }
+    }
+
+    function calculateTotal() {
+        return selectedIds.reduce((sum, id) => {
+            const r = recursos.find(item => item.id === id);
+            return sum + (r ? r.price : 0);
+        }, 0);
+    }
+
+    function filterBy(tag) {
+        currentFilter = tag;
+        document.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.innerText.toLowerCase() === tag || (tag === 'all' && btn.innerText === 'Todos')) {
+                btn.classList.add('active');
+            }
+        });
+
+        const filtered = tag === 'all' ? recursos : recursos.filter(r => r.tag === tag);
+        renderResources(filtered);
+    }
+
+    function saveApiKey(val) {
+        localStorage.setItem('google_ai_key', val);
+    }
+
+    async function handleAISearch(query) {
+        if (!query.trim()) return;
+        const key = localStorage.getItem('google_ai_key');
+        if (!key) {
+            alert("Por favor, ingresa tu API Key de Gemini para búsqueda semántica.");
+            return;
+        }
+
+        const loader = document.getElementById('loading');
+        loader.style.display = 'block';
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Dado este JSON de recursos educativos: ${JSON.stringify(recursos)}. 
+                            Retorna solo un array con los IDs de los recursos que mejor se ajustan a la consulta: "${query}".
+                            Si no hay nada, retorna []. 
+                            No escribas explicaciones, solo el JSON de los IDs.`
+                        }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            const textContent = data.candidates[0].content.parts[0].text;
+            const ids = JSON.parse(textContent.match(/\[.*\]/)[0]);
+            
+            const filtered = recursos.filter(r => ids.includes(r.id));
+            renderResources(filtered);
+        } catch (err) {
+            console.error("Gemini Error:", err);
+            // Fallback silencioso a búsqueda local
+            const term = query.toLowerCase();
+            const filtered = recursos.filter(r => r.title.toLowerCase().includes(term) || r.tema.toLowerCase().includes(term));
+            renderResources(filtered);
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    function handleBuy() {
+        const nicks = selectedIds.map(id => recursos.find(r => r.id === id).title).join(", ");
+        alert(`🎉 ¡Compra confirmada!\n\nProductos: ${nicks}\nTotal a pagar: $10.000 (Descuento aplicado)`);
+        selectedIds = [];
+        updateUI();
+    }
+
+    init();
+</script>
+
+</body>
+</html>

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { notFound, useParams } from 'next/navigation'
 import { useStudents } from '@/lib/context/StudentContext'
+import { toast } from 'sonner'
 
 // Sub-componentes refactorizados
 import StudentHeader from '@/components/student/StudentHeader'
@@ -10,6 +11,7 @@ import StudentPedagogicalProfile from '@/components/student/StudentPedagogicalPr
 import StudentDocuments from '@/components/student/StudentDocuments'
 import StudentSchoolInfo from '@/components/student/StudentSchoolInfo'
 import StudentSchedule from '@/components/student/StudentSchedule'
+import AIChat from '@/components/student/AIChat'
 
 export default function AlumnoPage() {
   const { slug } = useParams() as { slug: string }
@@ -39,9 +41,10 @@ export default function AlumnoPage() {
         id: 'doc_' + Date.now(),
         nombre: data.displayName,
         fecha: new Date().toISOString().split('T')[0],
-        tipo: (file.type.includes('pdf') ? 'pdf' : 'doc') as 'pdf' | 'doc',
+        tipo: (file.type.includes('pdf') ? 'pdf' : file.type.includes('text') ? 'txt' : 'doc') as 'pdf' | 'doc' | 'txt',
         geminiFileUri: data.uri,
-        geminiMimeType: data.mimeType
+        geminiMimeType: data.mimeType,
+        esPlantilla: file.type.includes('text') // Por defecto, archivos TXT se consideran potenciales plantillas
       }
       
       const newDocs = alumno.documentos ? [...alumno.documentos, newDoc] : [newDoc]
@@ -49,14 +52,16 @@ export default function AlumnoPage() {
       
     } catch (err) {
       console.error(err)
-      alert("Error al subir archivo. Verifica tu conexión o GOOGLE_API_KEY.")
+      toast.error("Error al subir archivo. Verifica tu conexión o GOOGLE_GENERATIVE_AI_API_KEY.")
     } finally {
       setUploading(false)
     }
   }
 
+  const { toggleDocumentTemplate } = useStudents()
+
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-2xl mx-auto pb-32">
       <StudentHeader alumno={alumno} />
       
       <StudentQuickActions slug={alumno.slug} />
@@ -65,10 +70,13 @@ export default function AlumnoPage() {
         <StudentPedagogicalProfile perfil={alumno.perfil_pedagogico} />
       )}
 
+      <AIChat alumno={alumno} />
+
       <StudentDocuments 
         documentos={alumno.documentos} 
         onUpload={handleFileUpload} 
-        uploading={uploading} 
+        uploading={uploading}
+        onToggleTemplate={(docId) => toggleDocumentTemplate(slug, docId)} 
       />
 
       <StudentSchoolInfo colegio={alumno.colegio} />

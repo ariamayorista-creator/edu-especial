@@ -6,9 +6,9 @@ import fs from 'fs';
 
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'Falta configurar GOOGLE_API_KEY en el entorno' }, { status: 500 });
+      return NextResponse.json({ error: 'Falta configurar GOOGLE_GENERATIVE_AI_API_KEY' }, { status: 500 });
     }
 
     const formData = await req.formData();

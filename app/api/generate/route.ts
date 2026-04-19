@@ -1,33 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { alumno, logs, tipo } = body;
     
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'Falta configurar GOOGLE_API_KEY en el entorno' }, { status: 500 });
+      return NextResponse.json({ error: 'Falta configurar GOOGLE_GENERATIVE_AI_API_KEY' }, { status: 500 });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      systemInstruction: "You are an AI pedagogical assistant generating educational reports. WARNING: Strict data privacy rules apply. Do not use real student names if accidentally provided. Write in a formal, encouraging tone suitable for parents and school administration."
-    });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    // SECURITY: Anonymize student data to protect sensitive information (PII) before sending it to LLM
-    const safeStudentName = "El estudiante (anonimizado por seguridad)";
-    
-    let safeLogs = logs;
-    if (logs) {
-       safeLogs = logs.map((l: any) => ({
-         ...l,
-         observacion: l.observacion ? l.observacion.replace(new RegExp(alumno.nombre, 'gi'), 'el estudiante') : ''
-       }))
-    }
-
+    // SECURITY: Anonymize student data
+    const safeStudentName = "El estudiante (anonimizado)";
     const context = `
       Perfil del Alumno:
       Nombre: ${safeStudentName}
@@ -38,80 +28,41 @@ export async function POST(req: Request) {
       - Matemática: ${alumno.perfil_pedagogico?.etapa_matematica || 'No evaluada'}
       - Apoyos/Andamiajes: ${alumno.perfil_pedagogico?.andamiajes || 'Ninguno'}
       
-      Registros Diarios (${logs.length}):
-      ${logs.map((l: any) => `- Fecha: ${l.fecha}. Observación: ${l.observacion}. Participó: ${l.participo}. Apoyo visual: ${l.uso_apoyo_visual}. En grupo: ${l.trabajo_en_grupo}`).join('\n')}
+      Registros Diarios (${logs?.length || 0}):
+      ${logs?.map((l: any) => `- Fecha: ${l.fecha}. Observación: ${l.observacion ? l.observacion.replace(new RegExp(alumno.nombre, 'gi'), 'el estudiante') : ''}. Participó: ${l.participo}.`).join('\n')}
     `;
 
-    let prompt = "";
+    // BUSCAR PLANTILLAS DE ESTRUCTURA (TXT)
+    const plantillas = alumno?.documentos?.filter((d: any) => d.esPlantilla && d.tipo === 'txt');
+    const estructuraContext = plantillas?.length > 0 
+      ? `ESTRUCTURA OBLIGATORIA (Sigue este formato): \n${plantillas.map((p: any) => p.descripcion || p.nombre).join('\n')}`
+      : 'Usa el formato oficial de la Provincia de Buenos Aires.';
+
+    let systemPrompt = "";
     if (tipo === 'ppi') {
-      prompt = `Eres un orientador pedagógico de Educación Especial en la Provincia de Buenos Aires. Basándote en el siguiente contexto del estudiante, redacta borradores para los campos de la Planilla de Propuesta Pedagógica Individual (PPI) alineado con los Criterios de la Comunicación N° 71/22. 
-      Devuelve ÚNICAMENTE un objeto JSON válido con las siguientes claves (usando lenguaje formal, técnico, enfocado en capacidades, resolviendo barreras didácticas y promoviendo andamiajes):
-      {
-        "barreras": "Barreras para el aprendizaje y la participación (enfoque didáctico)",
-        "modos_aprender": "Descripción de cómo aprende y qué necesita",
-        "acuerdos_lengua": "Estrategias para nivel de lectura actual",
-        "acuerdos_matematica": "Estrategias para su etapa matemática",
-        "acuerdos_naturales": "Estrategias de Ciencias Naturales",
-        "acuerdos_sociales": "Estrategias de Ciencias Sociales",
-        "herramientas": "Herramientas de evaluación sugeridas (ej: observación directa, registros anecdóticos)",
-        "criterios": "Los criterios de evaluación trimestral sugeridos acordes a su perfil"
-      }
-      
-      Contexto de origen: 
-      ---
-      ${context}
-      ---
-      No devuelvas Markdown. Devuelve SÓLO el texto del JSON.
-      `;
-    } else if (tipo === 'informe') {
-       prompt = `Eres un orientador pedagógico de Educación Especial. Redacta los campos para el Informe Trimestral basándote en el perfil del alumno y los registros diarios recientes.
-       Debes evaluar su progreso y el resultado de las intervenciones. Utiliza lenguaje formal y pedagógico según la normativa.
-       Devuelve ÚNICAMENTE un objeto JSON válido con las siguientes claves:
-       {
-         "avances_lengua": "Progreso en Prácticas del Lenguaje",
-         "avances_matematica": "Progreso en Matemática",
-         "avances_generales": "Observaciones generales de integración, conducta social y autonomía"
-       }
-       
-       Contexto de origen:
-       ---
-       ${context}
-       ---
-       No devuelvas Markdown. Devuelve SÓLO el texto del JSON.
-       `;
-    }
-    
-    const parts: any[] = [];
-    
-    // Si hay archivos cargados para el alumno (Fase 4: subida), inyectarlos al prompt
-    if (alumno.documentos && alumno.documentos.length > 0) {
-      alumno.documentos.forEach((doc: any) => {
-        if (doc.geminiFileUri && doc.geminiMimeType) {
-          parts.push({
-            fileData: {
-              mimeType: doc.geminiMimeType,
-              fileUri: doc.geminiFileUri
-            }
-          });
-        }
-      });
+      systemPrompt = `Eres un orientador pedagógico experto. Genera una PPI en JSON.
+      ${estructuraContext}
+      Es obligatorio que el JSON tenga exactamente estas llaves: barreras, modos_aprender, acuerdos_lengua, acuerdos_matematica, acuerdos_naturales, acuerdos_sociales, herramientas, criterios.`;
+    } else {
+      systemPrompt = `Eres un orientador pedagógico experto. Genera un Informe Trimestral en JSON.
+      ${estructuraContext}
+      Es obligatorio que el JSON tenga exactamente estas llaves: avances_lengua, avances_matematica, avances_generales.`;
     }
 
-    parts.push({ text: prompt });
+    const result = await model.generateContent([
+      { text: systemPrompt },
+      { text: `Contexto del alumno:\n${context}\n\nGenera el JSON solicitado. NO incluyas markdown, solo el objeto JSON puro.` }
+    ]);
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts }],
-      generationConfig: { temperature: 0.2 }
-    });
+    const response = await result.response;
+    const text = response.text();
     
-    const text = result.response.text();
-    // Clean potential markdown blocks
     const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const data = JSON.parse(jsonStr);
 
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Error generating AI content:', error);
-    return NextResponse.json({ error: error.message || 'Error desconocido' }, { status: 500 });
+    console.error('Error in api/generate:', error);
+    return NextResponse.json({ error: error.message || 'Error generando contenido AI' }, { status: 500 });
   }
 }

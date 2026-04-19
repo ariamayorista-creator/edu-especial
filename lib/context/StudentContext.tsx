@@ -1,6 +1,7 @@
 'use client'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { ALUMNOS, type Alumno, type LogDiario, type EstadoAsistencia } from '@/lib/mock'
+import { supabase } from '@/lib/supabase'
 
 interface TeacherInfo {
   nombre: string
@@ -30,46 +31,31 @@ const INITIAL_TEACHER: TeacherInfo = {
 
 export function StudentProvider({ children }: { children: React.ReactNode }) {
   const [students, setStudents] = useState<Alumno[]>([])
-  const [teacherInfo, setTeacherInfo] = useState<TeacherInfo>(INITIAL_TEACHER)
+  const [teacherInfo, setTeacherInfo] = useState<TeacherInfo>({ nombre: '', titulo: 'Cargando...' })
   const [initialized, setInitialized] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Load from local storage AND Supabase on mount
+  // Load from Supabase on mount
   useEffect(() => {
     async function initData() {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      const savedTeacher = localStorage.getItem(TEACHER_KEY)
-      
-      let initialStudents = ALUMNOS
-      if (saved) {
-        try {
-          initialStudents = JSON.parse(saved)
-        } catch (e) {
-          console.error('Failed to parse saved students', e)
-        }
+      // 1. Get User Info
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setTeacherInfo({
+          nombre: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Docente',
+          titulo: 'Docente Edu-Especial'
+        })
       }
 
-      // Try fetching from Supabase
+      // 2. Fetch Students
       try {
         const { studentService } = await import('@/lib/services/studentService')
         const remoteStudents = await studentService.getStudents()
-        if (remoteStudents && remoteStudents.length > 0) {
-          initialStudents = remoteStudents
-        }
+        setStudents(remoteStudents)
       } catch (err) {
-        console.warn('Could not load from Supabase, using local data', err)
+        console.warn('Could not load from Supabase', err)
       }
 
-      setStudents(initialStudents)
-
-      if (savedTeacher) {
-        try {
-          setTeacherInfo(JSON.parse(savedTeacher))
-        } catch (e) {
-          console.error('Failed to parse saved teacher info', e)
-        }
-      }
-      
       setInitialized(true)
       setLoading(false)
     }
@@ -129,6 +115,16 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  const toggleDocumentTemplate = (studentSlug: string, docId: string) => {
+    setStudents(prev => prev.map(s => {
+      if (s.slug !== studentSlug) return s
+      const updatedDocs = s.documentos?.map(d => 
+        d.id === docId ? { ...d, esPlantilla: !d.esPlantilla } : d
+      )
+      return { ...s, documentos: updatedDocs }
+    }))
+  }
+
   const updateTeacherInfo = (info: TeacherInfo) => {
     setTeacherInfo(info)
   }
@@ -142,7 +138,8 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       deleteStudent, 
       addLog, 
       setAsistencia,
-      updateTeacherInfo 
+      updateTeacherInfo,
+      toggleDocumentTemplate
     }}>
       {children}
     </StudentContext.Provider>

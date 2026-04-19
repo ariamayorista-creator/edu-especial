@@ -5,6 +5,8 @@ import { StudentProvider } from '@/lib/context/StudentContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'EduEspecial',
   description: 'Asistente para profesoras de educación especial',

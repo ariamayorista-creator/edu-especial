@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 const TABS = [
   { href: '/', icon: '👥', label: 'Alumnos' },
   { href: '/bandeja', icon: '📥', label: 'Bandeja' },
+  { href: '/dashboard/marketplace', icon: '🏪', label: 'Tienda' },
   { href: '/perfil', icon: '👤', label: 'Perfil' },
 ]
 

@@ -47,10 +47,11 @@ export interface Documento {
   id: string
   nombre: string
   fecha: string
-  tipo: 'pdf' | 'doc'
+  tipo: 'pdf' | 'doc' | 'txt'
   descripcion?: string
   geminiFileUri?: string
   geminiMimeType?: string
+  esPlantilla?: boolean // Indica si el archivo debe usarse como estructura/template para la IA
 }
 
 export interface PerfilPedagogico {

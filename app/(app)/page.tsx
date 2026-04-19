@@ -1,10 +1,16 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useStudents } from '@/lib/context/StudentContext'
 import HomeHeader from '@/components/home/HomeHeader'
+import StatsBar from '@/components/dashboard/StatsBar'
+import AttendanceChart from '@/components/dashboard/AttendanceChart'
+import LogsTimeline from '@/components/dashboard/LogsTimeline'
 import SearchBar from '@/components/home/SearchBar'
 import StudentList from '@/components/home/StudentList'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 function BandejaPreview() {
   const [count, setCount] = useState({ total: 0, listos: 0, generando: 0 })
@@ -26,8 +32,8 @@ function BandejaPreview() {
   }, [])
 
   return (
-    <Link href="/bandeja" className="block mb-6">
-      <div className="glass rounded-[1.75rem] p-5 border border-indigo-500/20 hover:border-indigo-500/40 transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/5">
+    <Link href="/bandeja" className="block mb-6 active-scale">
+      <Card variant="glass" className="p-5 border-indigo-500/20 hover:border-indigo-500/40 transition-all shadow-lg shadow-indigo-500/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-2xl">
@@ -45,19 +51,19 @@ function BandejaPreview() {
           </div>
           <div className="flex items-center gap-2">
             {count.listos > 0 && (
-              <span className="w-6 h-6 bg-emerald-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <Badge variant="success" className="w-6 h-6 flex items-center justify-center p-0 rounded-full text-[10px]">
                 {count.listos}
-              </span>
+              </Badge>
             )}
             {count.generando > 0 && (
-              <span className="w-6 h-6 bg-amber-500 text-white text-[11px] font-black rounded-full flex items-center justify-center animate-pulse">
+              <Badge variant="warning" className="w-6 h-6 flex items-center justify-center p-0 rounded-full text-[10px] animate-pulse">
                 {count.generando}
-              </span>
+              </Badge>
             )}
             <span className="text-slate-400 text-lg ml-1">→</span>
           </div>
         </div>
-      </div>
+      </Card>
     </Link>
   )
 }
@@ -77,6 +83,18 @@ export default function HomePage() {
   return (
     <div className="p-6 pb-24 max-w-2xl mx-auto">
       <HomeHeader studentCount={students.length} />
+
+      <div className="mb-6">
+        <StatsBar />
+      </div>
+
+      <div className="mb-6">
+        <AttendanceChart />
+      </div>
+
+      <div className="mb-8">
+        <LogsTimeline />
+      </div>
 
       <BandejaPreview />
 

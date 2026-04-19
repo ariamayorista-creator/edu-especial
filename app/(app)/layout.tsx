@@ -1,5 +1,7 @@
 import TutorialOverlay from '@/components/TutorialOverlay'
 import { ThemeProvider } from 'next-themes'
+import { Toaster } from '@/components/ui/sonner'
+import BottomNav from '@/components/BottomNav'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +10,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="max-w-2xl mx-auto">
           {children}
         </div>
+        <BottomNav />
         <TutorialOverlay />
+        <Toaster />
       </div>
     </ThemeProvider>
   )
